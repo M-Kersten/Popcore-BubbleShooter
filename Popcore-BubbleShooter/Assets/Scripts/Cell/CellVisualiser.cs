@@ -51,8 +51,9 @@ public class CellVisualiser : MonoBehaviour
         LeanTween.moveX(gameObject, transform.position.x + UnityEngine.Random.Range(-5, 5), .8f).setEase(LeanTweenType.easeInSine).setDelay(i * .05f);
     }
 
-    public void MoveToCell(Cell upgradeCell, Action callback)
+    public void MoveToCell(GridCell upgradeCell, Action callback)
     {
+        UpdateVisuals(upgradeCell.Score);
         LeanTween.move(gameObject, upgradeCell.transform.position, .5f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(callback);
     }
 

@@ -32,7 +32,7 @@ public class GridCell : Cell
     /// Moves the cell towards a neighbour with a higher exponent and merges with it
     /// </summary>
     /// <param name="upgradeCell"></param>
-    public void MergeWithUpgrade(Cell upgradeCell)
+    public void MergeWithUpgrade(GridCell upgradeCell)
     {
         visualiser.MoveToCell(upgradeCell, () =>
         {
