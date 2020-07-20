@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 #endif
 
-namespace UnityTools
+namespace Bubbleshooter.Feedback
 {
     /// <summary>
     /// Class to activate vibrations, due to limited vibration options on iOS, only presets of vibrations have been implemented to keep the platforms consistent
@@ -152,7 +152,7 @@ namespace UnityTools
 #if UNITY_IOS
             CoroutineManager.Instance.StartCoroutine(VibrationMultipleTimesIOS(3,.13f));
 #elif UNITY_ANDROID
-		    Vibrate(pattern: new long[] { 0, 25, 25, 25, 25, 25 });
+		    Vibrate(pattern: new long[] { 0, 50, 50, 50, 50, 50 });
 #endif
 #endif
         }

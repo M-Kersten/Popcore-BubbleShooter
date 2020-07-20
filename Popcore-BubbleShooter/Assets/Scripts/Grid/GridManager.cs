@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using Bubbleshooter.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,38 +10,32 @@ public class GridManager : MonoBehaviour
     public static GridManager Instance { get; private set; }
     #endregion
 
-    [SerializeField]
-    private Cell cellPrefab;
-
-    private GameObject gridInstance;
-
-    [SerializeField]
-    private Transform gridRoot;
-
-    [SerializeField]
-    private GameObject gridPrefab;
-
-    [SerializeField]
-    private LevelSettings settings;
-
-    private int activeRows;
-
-    private bool spawningEvenRow;
-
-    [SerializeField]
-    private MessageScreenController messageScreen;
-
     /// <summary>
     /// All the cells in the currently active grid
     /// </summary>
-    public Cell[,] ActiveGrid;
+    public GridCell[,] CurrentGrid;
+
+    public static Action<GridCell, float> CellCreated;
+    public static Action<int, int> MovedCellDown;
+    public static Action CellsFalling;
 
     public RectTransform CellTransform => cellPrefab.transform as RectTransform;
     private RectTransform GridRect => gridInstance.transform as RectTransform;
 
-    public Action<Cell, float> CellCreated;
-    public Action<int, int> MovedCellDown;
+    [SerializeField]
+    private GridCell cellPrefab;
+    [SerializeField]
+    private Transform gridRoot;
+    [SerializeField]
+    private GameObject gridPrefab;
+    [SerializeField]
+    private LevelSettings settings;  
+    [SerializeField]
+    private MessageScreenController messageScreen;
 
+    private int activeRows;
+    private GameObject gridInstance;
+    private bool spawningEvenRow;
 
     private void Awake()
     {
@@ -54,60 +48,37 @@ public class GridManager : MonoBehaviour
     private void Start()
     {
         SpawnGrid();
-        RayCastShooter.Instance.Fired += CellAdded;
+        PlayerCellShooter.Fired += CellAdded;
     }
 
     private void OnDestroy()
     {
-        RayCastShooter.Instance.Fired -= CellAdded;
+        PlayerCellShooter.Fired -= CellAdded;
     }
 
-    private void CellAdded(Cell cell)
+    /// <summary>
+    /// Function to call when a cell has been added to the grid
+    /// </summary>
+    /// <param name="cell"></param>
+    private void CellAdded(GridCell cell)
     {
-        MatchCells(cell);
+        MatchCells(cell, () => {
         if (CheckForGameOver())
-            ResetBoard();
+            ResetGrid();
         MoveGridDown();
+        BubbleInput.Instance.InputEnabled = true;
+        });
     }
 
-    private void ResetBoard()
-    {
-        List<Cell> allCells = GetAllCells(CellState.Filled);
-        for (int i = 0; i < allCells.Count; i++)
-        {
-            Cell cell = allCells[i];
-            ActiveGrid[cell.Index.x, cell.Index.y] = null;
-            cell.DestroyCell(true, i);
-        }
-        GridShake();
-    }
-
-    private bool CheckForGameOver()
-    {
-        bool gameOver = false;
-
-        List<Cell> allCells = GetAllCells(CellState.Filled);
-        foreach (Cell cell in allCells)
-        {
-            if (cell.Index.y == 0)
-            {
-                gameOver = true;
-                break;
-            }
-        }
-
-        if (gameOver)        
-            messageScreen.ShowScreen(UserMessage.GameOver);
-        
-        return gameOver;
-    }
-
+    /// <summary>
+    /// Spawn in a new grid with specified settings
+    /// </summary>
     private void SpawnGrid()
     {
         gridInstance = Instantiate(gridPrefab, gridRoot);
-        CellTransform.sizeDelta = new Vector2((GridRect.rect.size.x * 1.05f) / settings.TotalCollums, GridRect.rect.size.y / settings.TotalRows);
+        CellTransform.sizeDelta = new Vector2((GridRect.rect.size.x * settings.HorizontalCellspacing) / settings.TotalCollums, GridRect.rect.size.y / settings.TotalRows);
 
-        ActiveGrid = new Cell[settings.TotalCollums, settings.TotalRows + 1];
+        CurrentGrid = new GridCell[settings.TotalCollums, settings.TotalRows + 1];
 
         for (int x = 0; x < settings.TotalCollums; x++)
         {
@@ -120,11 +91,49 @@ public class GridManager : MonoBehaviour
         SpawnEmptyCells();
     }
 
-    private void GridShake()
+    /// <summary>
+    /// Resets the grid to 1 line of cells
+    /// </summary>
+    private void ResetGrid()
     {
-        LeanTween.moveX(gridRoot.gameObject, gridRoot.transform.position.x + .03f, .1f).setLoopCount(4).setLoopPingPong();
+        List<GridCell> allCells = GetAllCells(CellState.Filled);
+        for (int i = 0; i < allCells.Count; i++)
+        {
+            GridCell cell = allCells[i];
+            CurrentGrid[cell.Index.x, cell.Index.y] = null;
+            cell.DestroyCell(true, i);
+        }
+
+        CellsFalling();
+        Bubbleshooter.Feedback.VibrationManager.VibrateError();
     }
 
+    /// <summary>
+    /// Whether the grid is filled too much, leading to a start over
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckForGameOver()
+    {
+        bool gameOver = false;
+        List<GridCell> allCells = GetAllCells(CellState.Filled);
+        foreach (GridCell cell in allCells)
+        {
+            if (cell.Index.y == 0)
+            {
+                gameOver = true;
+                break;
+            }
+        }
+
+        if (gameOver)
+        {
+            Debug.Log("Game Over!");
+            messageScreen.ShowScreen(UserMessage.GameOver);
+        }
+        
+        return gameOver;
+    }
+       
     private void AddCellRow()
     {
         spawningEvenRow = !spawningEvenRow;
@@ -135,15 +144,7 @@ public class GridManager : MonoBehaviour
     }
 
     private void MoveGridDown()
-    {
-        /*
-        if (activeRows == settings.TotalRows)
-        {
-            Debug.Log("game over!");
-            return;
-        }
-        */
-        
+    {        
         RemoveEmptyCells();
         AddCellRow();
 
@@ -152,12 +153,12 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < settings.TotalRows; y++)
             {                
-                if (ActiveGrid[x, y + 1] != null)
+                if (CurrentGrid[x, y + 1] != null)
                 {           
-                    ActiveGrid[x, y] = ActiveGrid[x, y + 1];
-                    ActiveGrid[x, y + 1] = null;
+                    CurrentGrid[x, y] = CurrentGrid[x, y + 1];
+                    CurrentGrid[x, y + 1] = null;
 
-                    ActiveGrid[x, y].Index = new Vector2Int(x, y);
+                    CurrentGrid[x, y].Index = new Vector2Int(x, y);
                     MovedCellDown?.Invoke(x, y);
                 }
             }
@@ -175,12 +176,12 @@ public class GridManager : MonoBehaviour
             horizontalAdjustment = (activeRows - y) % 2 == 0 ? x : x + .5f;
 
 
-        Cell newCell = Instantiate(cellPrefab, Vector3.zero, cellPrefab.transform.rotation, gridInstance.transform);
+        GridCell newCell = Instantiate(cellPrefab, Vector3.zero, cellPrefab.transform.rotation, gridInstance.transform);
         newCell.State = state;
 
         ((RectTransform)newCell.transform).anchoredPosition = new Vector2(CellTransform.rect.width  * horizontalAdjustment - GridRect.rect.size.x / 2, 
                                                                           CellTransform.rect.height * (y + .5f) - GridRect.rect.size.y / 2);
-        ActiveGrid[x, y] = newCell;
+        CurrentGrid[x, y] = newCell;
         newCell.Index = new Vector2Int(x, y);
                
         return newCell;
@@ -188,60 +189,62 @@ public class GridManager : MonoBehaviour
 
     private void DeleteSeperatedCells()
     {
-        foreach (Cell cell in GetAllCells(CellState.Filled))        
+        // by default all cells set to be seperated
+        foreach (GridCell cell in GetAllCells(CellState.Filled))        
             cell.Seperated = true;
 
+        // the top cells are the anchor points
         for (int x = 0; x < settings.TotalCollums; x++)
         {
-            if (ActiveGrid[x, settings.TotalRows - 1] != null && ActiveGrid[x, settings.TotalRows - 1].State == CellState.Filled)
-                ActiveGrid[x, settings.TotalRows - 1].Seperated = false;
+            if (CurrentGrid[x, settings.TotalRows - 1] != null && CurrentGrid[x, settings.TotalRows - 1].State == CellState.Filled)
+            {
+                CurrentGrid[x, settings.TotalRows - 1].Seperated = false;
+            }
         }
 
+        // go through each cell from top to bottom and set them to be connected if a neighbour is already connected
         for (int x = 0; x < settings.TotalCollums; x++)
         {
             for (int y = settings.TotalRows - 1; y >= 0; y--)
             {
-                if (ActiveGrid[x, y] == null)
+                if (CurrentGrid[x, y] == null)
                     continue;
 
-                if (ActiveGrid[x, y].State == CellState.Filled)
+                if (CurrentGrid[x, y].State == CellState.Filled && CurrentGrid[x, y].Seperated == false)
                 {
-                    
-                    List<Cell> connectedCells = GetNeighbours(ActiveGrid[x, y], false, false).ToList();
-                    foreach (var cell in connectedCells)
+                    foreach (var cell in GetNeighbours(CurrentGrid[x, y], false, false).ToList())
                     {
-                        if (cell.Seperated == false)
-                        {
-                            ActiveGrid[x, y].Seperated = false;
-                        }
+                        cell.Seperated = false;
                     }
                 }
             }
         }
-        List<Cell> seperatedCells = GetAllCells(CellState.Filled).Where(x => x.Seperated).ToList();
+        List<GridCell> seperatedCells = GetAllCells(CellState.Filled).Where(x => x.Seperated).ToList();
         if (seperatedCells.Count < 1)
             return;
 
-        GridShake();
+        CellsFalling();
+
         for (int i = 0; i < seperatedCells.Count; i++)
         {
-            Cell cell = seperatedCells[i];            
-                ActiveGrid[cell.Index.x, cell.Index.y] = null;
+            GridCell cell = seperatedCells[i];            
+                CurrentGrid[cell.Index.x, cell.Index.y] = null;
                 cell.DestroyCell(true, i);            
         }
     }
 
-    public void MatchCells(Cell newCell)
+    public void MatchCells(GridCell newCell, Action callback = null)
     {
         AudioManager.Instance.PlayClip(0);
+        Bubbleshooter.Feedback.VibrationManager.VibrateSelect();
 
-        HashSet<Cell> matchedCells = GetNeighbours(newCell);
-        HashSet<Cell> newNeighbours = matchedCells;
+        HashSet<GridCell> matchedCells = GetNeighbours(newCell);
+        HashSet<GridCell> newNeighbours = matchedCells;
 
         // while new unique neighbours have been found, keep looking for more
         while (newNeighbours.Count > 0)
         {
-            newNeighbours = new HashSet<Cell>();
+            newNeighbours = new HashSet<GridCell>();
             foreach (var cell in matchedCells)
                 newNeighbours.UnionWith(GetNeighbours(cell));
             
@@ -249,8 +252,8 @@ public class GridManager : MonoBehaviour
             matchedCells.UnionWith(newNeighbours);
         }
 
-        Cell upgradeCell = null;
-        List<Cell> matches = matchedCells.ToList();
+        GridCell upgradeCell = null;
+        List<GridCell> matches = matchedCells.ToList();
 
         for (int i = matches.Count - 1; i >= 0; i--)
         {
@@ -260,36 +263,49 @@ public class GridManager : MonoBehaviour
             {
                 matches[i].Score *= 2;
                 upgradeCell = matches[i];
-
                 // if the highest possible cellscore is reached, destroy the cell and its surrounding cells with it
                 if (matches[i].Score == 2048)
                 {
-                    List<Cell> explodeCellList = GetNeighbours(matches[i], false, false).ToList();
-                    foreach (Cell cell in explodeCellList)
+                    List<GridCell> explodeCellList = GetNeighbours(matches[i], false, false).ToList();
+                    foreach (GridCell cell in explodeCellList)
                     {
-                        ActiveGrid[cell.Index.x, cell.Index.y] = null;
+                        CurrentGrid[cell.Index.x, cell.Index.y] = null;
                         cell.DestroyCell();
                     }
                 }
             }
-            else
-            {
-                ActiveGrid[matches[i].Index.x, matches[i].Index.y] = null;
-                matches[i].DestroyCell();
-            }
         }
-        DeleteSeperatedCells();
+        for (int i = 0; i < matches.Count; i++)
+        {
+            if (upgradeCell == null)
+            {
+                matches[i].Score *= 2;
+                upgradeCell = matches[i];
+            }
+            else            
+                CurrentGrid[matches[i].Index.x, matches[i].Index.y].MergeWithUpgrade(upgradeCell);
+        }
+        
+        CoroutineManager.Instance.Wait(.5f, () => 
+        {
+            DeleteSeperatedCells();
 
-        if (upgradeCell != null)        
-            MatchCells(upgradeCell);
-
-        if (GetAllCells(CellState.Filled).Count < 1)        
-            messageScreen.ShowScreen(UserMessage.LevelClear);        
+            if (upgradeCell != null)   
+                MatchCells(upgradeCell, callback);
+            else            
+                callback?.Invoke();
+           
+            int remainingCells = GetAllCells(CellState.Filled).Count;
+            if (remainingCells < 1)      
+                messageScreen.ShowScreen(UserMessage.LevelClear);
+            else if (remainingCells < settings.TotalCollums)
+                messageScreen.ShowScreen(UserMessage.GoodJob);
+        });
     }
 
-    public HashSet<Cell> GetNeighbours(Cell cell, bool onlyValid = true, bool checkForUpgrade = false)
+    public HashSet<GridCell> GetNeighbours(GridCell cell, bool onlyValid = true, bool checkForUpgrade = false)
     {
-        HashSet<Cell> neighbours = new HashSet<Cell>();
+        HashSet<GridCell> neighbours = new HashSet<GridCell>();
         for (int x = cell.Index.x - 1; x <= cell.Index.x + 1; x++)
         {
             for (int y = cell.Index.y - 1; y <= cell.Index.y + 1; y++)
@@ -298,39 +314,39 @@ public class GridManager : MonoBehaviour
                 if ((x == cell.Index.x + offset && y == cell.Index.y - 1) || (x == cell.Index.x + offset && y == cell.Index.y + 1))
                     continue;
                 // avoid cycling through cells outside of grid scope or the current cell
-                if (x >= 0 && y >= 0 && x < settings.TotalCollums && y < settings.TotalRows && ActiveGrid[x, y] != null && ActiveGrid[x,y].State == CellState.Filled && cell.Index != ActiveGrid[x,y].Index)
+                if (x >= 0 && y >= 0 && x < settings.TotalCollums && y < settings.TotalRows && CurrentGrid[x, y] != null && CurrentGrid[x,y].State == CellState.Filled && cell.Index != CurrentGrid[x,y].Index)
                 {
                     // if only valid/linkable cells should be returned, skip the current cell if invalid
-                    if (onlyValid && ActiveGrid[x, y].Score != cell.Score)
+                    if (onlyValid && CurrentGrid[x, y].Score != cell.Score)
                         continue;
-                    else if (checkForUpgrade && ActiveGrid[x, y].Score != cell.Score * 2)
+                    else if (checkForUpgrade && CurrentGrid[x, y].Score != cell.Score * 2)
                         continue;
 
-                    neighbours.Add(ActiveGrid[x, y]);
+                    neighbours.Add(CurrentGrid[x, y]);
                 }
             }
         }
         return neighbours;
     }
 
-    private List<Cell> GetAllCells(CellState state = CellState.Filled)
+    private List<GridCell> GetAllCells(CellState state = CellState.Filled)
     {
-        List<Cell> returnCells = new List<Cell>();
+        List<GridCell> returnCells = new List<GridCell>();
         for (int x = 0; x < settings.TotalCollums; x++)        
             for (int y = 0; y < settings.TotalRows; y++)            
-                if (ActiveGrid[x,y] != null && ActiveGrid[x,y].State == state)                
-                    returnCells.Add(ActiveGrid[x, y]);
+                if (CurrentGrid[x,y] != null && CurrentGrid[x,y].State == state)                
+                    returnCells.Add(CurrentGrid[x, y]);
         return returnCells;
     }
 
     private void RemoveEmptyCells()
     {
         // remove current empty cells
-        List<Cell> emptyCells = GetAllCells(CellState.Empty);
+        List<GridCell> emptyCells = GetAllCells(CellState.Empty);
         emptyCells.AddRange(GetAllCells(CellState.Preview));
-        foreach (Cell cell in emptyCells)
+        foreach (GridCell cell in emptyCells)
         {
-            ActiveGrid[cell.Index.x, cell.Index.y] = null;
+            CurrentGrid[cell.Index.x, cell.Index.y] = null;
             cell.DestroyCell();
         }
     }
@@ -338,9 +354,9 @@ public class GridManager : MonoBehaviour
     private void SpawnEmptyCells()
     {     
         // spawn new ones
-        List<Cell> filledCells = GetAllCells(CellState.Filled);
+        List<GridCell> filledCells = GetAllCells(CellState.Filled);
 
-        foreach (Cell cell in filledCells)
+        foreach (GridCell cell in filledCells)
         {
             for (int x = cell.Index.x - 1; x <= cell.Index.x + 1; x++)
             {
@@ -352,7 +368,7 @@ public class GridManager : MonoBehaviour
                         continue;
 
                     if (x >= 0 && y >= 0 && x < settings.TotalCollums && y < settings.TotalRows)                    
-                        if (ActiveGrid[x, y] == null)
+                        if (CurrentGrid[x, y] == null)
                             CreateNewCell(x, y, CellState.Empty);                    
                 }
             }

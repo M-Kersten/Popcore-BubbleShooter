@@ -74,9 +74,6 @@ public class AudioManager : Singleton<AudioManager>
 
     public void PlayBackgroundTrack(int clipIndex)
     {
-        //if (musicChannels[musicChannels[0].clip != null ? 0 : 1].isPlaying && musicChannels[musicChannels[0].clip != null ? 0 : 1].clip == musicClips[clipIndex].sound)
-         //   return;
-
         // pick the empty audiochannel and load the chosen track
         int chosenChannel = musicChannels[0].clip == null ? 0 : 1;
         musicChannels[chosenChannel].clip = musicClips[clipIndex].sound;
@@ -96,13 +93,7 @@ public class AudioManager : Singleton<AudioManager>
         {
             timer += Time.deltaTime;
             musicChannels[channelIndex].volume = timer / musicFadeDuration * (musicClips[channelIndex].Volume * globalMusicVolume);
-            //musicChannels[otherChannel].volume = (1 - timer / musicFadeDuration) * (musicClips[otherChannel].Volume * globalMusicVolume);
             yield return null;
-        }
-        if (timer >= musicFadeDuration)
-        {
-            // remove the clip from the other channel            
-           // musicChannels[otherChannel].clip = null;
         }
         yield return null;
     }

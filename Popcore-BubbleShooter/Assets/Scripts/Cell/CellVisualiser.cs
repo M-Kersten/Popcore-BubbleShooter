@@ -3,10 +3,13 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 
+/// <summary>
+/// Seperate class that handles cell visuals
+/// </summary>
 public class CellVisualiser : MonoBehaviour
 {
     [SerializeField]
-    CellSettings settings;
+    private CellSettings settings;
 
     [SerializeField]
     private TextMeshProUGUI countText;
@@ -33,6 +36,7 @@ public class CellVisualiser : MonoBehaviour
 
     public void AnimateIn()
     {
+        LeanTween.cancel(gameObject);
         transform.localScale = Vector3.zero;
         LeanTween.scale(gameObject, Vector3.one, .8f)
             .setEase(LeanTweenType.easeOutBack);
@@ -44,10 +48,17 @@ public class CellVisualiser : MonoBehaviour
                 .setEase(LeanTweenType.easeInBack)
                 .setDelay(i * .05f)
                 .setOnComplete(() => callback?.Invoke());
+        LeanTween.moveX(gameObject, transform.position.x + UnityEngine.Random.Range(-5, 5), .8f).setEase(LeanTweenType.easeInSine).setDelay(i * .05f);
+    }
+
+    public void MoveToCell(Cell upgradeCell, Action callback)
+    {
+        LeanTween.move(gameObject, upgradeCell.transform.position, .5f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(callback);
     }
 
     public void AnimateOut(CellState state, Action callback = null)
     {
+        LeanTween.cancel(gameObject);
         float duration = .4f;
         if (state != CellState.Filled)
         {
@@ -66,7 +77,6 @@ public class CellVisualiser : MonoBehaviour
         }
         
     }
-
 
     public void UpdateState(CellState state)
     {

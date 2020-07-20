@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Contains logic for easy implementation of singleton design pattern
+/// Contains logic for easy implementation of singleton design pattern, script has been copied from Unity
 /// </summary>
 namespace SingletonUtility
 {

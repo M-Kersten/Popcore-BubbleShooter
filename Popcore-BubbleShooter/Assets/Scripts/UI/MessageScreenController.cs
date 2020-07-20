@@ -1,10 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Controls all aspects of the messages to the user
+/// </summary>
 public class MessageScreenController : MonoBehaviour
 {
+    /// <summary>
+    /// Confetti particles to show when player did something positive
+    /// </summary>
     [SerializeField]
     private ParticleSystem confetti;
 
@@ -12,33 +16,39 @@ public class MessageScreenController : MonoBehaviour
     private TextMeshProUGUI messageText;
 
     [SerializeField]
-    private string[] congratulationTexts;
-
-    [SerializeField]
-    private string[] gameOverTexts;
+    private MessagePreset messages;
 
     public void ShowScreen(UserMessage userMessage)
-    {        
-        if (userMessage == UserMessage.LevelClear)
-        {
-            messageText.text = congratulationTexts[Random.Range(0, congratulationTexts.Length)];
-            confetti.Play();
-        }
-        else
-        {
-            messageText.text = gameOverTexts[Random.Range(0, gameOverTexts.Length)];
-        }
-        
-        LeanTween.moveLocal(messageText.gameObject, Vector3.zero, 1)
-            .setEase(LeanTweenType.easeOutQuart)
-            .setOnComplete(()=>
-            {
-                if (confetti.isPlaying)                
-                    confetti.Stop();
+    {
+        Debug.Log("showing game over: " + messages.GameoverTexts[0]);
 
-                LeanTween.moveLocal(messageText.gameObject, Vector3.left * 1800, 1)
-                         .setDelay(1)
-                         .setEase(LeanTweenType.easeInQuart);                
-            });
+        if (userMessage == UserMessage.GoodJob || userMessage == UserMessage.LevelClear)
+        {
+            confetti.Play();
+            AudioManager.Instance.PlayClip(4);
+            messageText.text = userMessage == UserMessage.GoodJob ? messages.CongratulationsTexts[Random.Range(0, messages.CongratulationsTexts.Length)] : messages.PerfectText;
+        }
+        else if (userMessage == UserMessage.GameOver)
+        {
+            messageText.text = messages.GameoverTexts[Random.Range(0, messages.GameoverTexts.Length)];
+            AudioManager.Instance.PlayClip(3);
+        }
+        AnimateInScreen();
+    }
+
+    private void AnimateInScreen()
+    {
+        LeanTween.moveLocal(messageText.gameObject, Vector3.zero, 1)
+                    .setEase(LeanTweenType.easeOutQuart)
+                    .setOnComplete(() =>
+                    {
+                        if (confetti.isPlaying)
+                            confetti.Stop();
+
+                        LeanTween.moveLocal(messageText.gameObject, Vector3.right * 1800, 1)
+                                 .setDelay(1)
+                                 .setEase(LeanTweenType.easeInQuart)
+                                 .setOnComplete(() => messageText.gameObject.transform.localPosition += Vector3.left * 1800 * 2);
+                    });
     }
 }

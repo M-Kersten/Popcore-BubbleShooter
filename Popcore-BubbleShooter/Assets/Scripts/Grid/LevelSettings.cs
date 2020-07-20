@@ -18,4 +18,6 @@ public class LevelSettings : ScriptableObject
     /// the starting amount of rows to display in the grid layout
     /// </summary>
     public int StartingRows;
+    [Header("Advanced grid settings")]
+    public float HorizontalCellspacing;
 }
