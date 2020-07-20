@@ -61,12 +61,12 @@ public class GridManager : MonoBehaviour
     /// </summary>
     /// <param name="cell"></param>
     private void CellAdded(GridCell cell)
-    {
+    {        
         MatchCells(cell, () => {
         if (CheckForGameOver())
             ResetGrid();
         MoveGridDown();
-        BubbleInput.Instance.InputEnabled = true;
+        CoroutineManager.Instance.Wait((settings.TotalCollums + settings.TotalRows) *.065f, () => BubbleInput.Instance.InputEnabled = true);
         });
     }
 
@@ -126,10 +126,7 @@ public class GridManager : MonoBehaviour
         }
 
         if (gameOver)
-        {
-            Debug.Log("Game Over!");
-            messageScreen.ShowScreen(UserMessage.GameOver);
-        }
+            messageScreen.ShowScreen(UserMessage.GameOver);        
         
         return gameOver;
     }
@@ -298,7 +295,7 @@ public class GridManager : MonoBehaviour
             int remainingCells = GetAllCells(CellState.Filled).Count;
             if (remainingCells < 1)      
                 messageScreen.ShowScreen(UserMessage.LevelClear);
-            else if (remainingCells < settings.TotalCollums)
+            else if (remainingCells < settings.TotalCollums - 1)
                 messageScreen.ShowScreen(UserMessage.GoodJob);
         });
     }

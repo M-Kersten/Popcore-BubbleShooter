@@ -5,6 +5,9 @@ using UnityEngine;
 /// </summary>
 public class PlayerCell : Cell
 {
+    [SerializeField]
+    private bool animateIn = false;
+
     public Transform VisualiserTransform { get { return visualiser.transform; } }
 
     private void Start()
@@ -18,6 +21,7 @@ public class PlayerCell : Cell
 
     private void OnEnable()
     {
-        visualiser.AnimateIn();
+        if (animateIn)
+            visualiser.AnimateIn();
     }
 }

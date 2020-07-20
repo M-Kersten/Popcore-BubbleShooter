@@ -5310,7 +5310,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   confetti: {fileID: 574348782}
   messageText: {fileID: 495694183}
-  messages: {fileID: 11400000, guid: 17f17d01b05df72409f0f07ab193fca2, type: 2}
+  messages: {fileID: 11400000, guid: efbeb0d69db33a04ba8f2b792e7bced7, type: 2}
 --- !u!1 &184004103
 GameObject:
   m_ObjectHideFlags: 0
@@ -11204,7 +11204,7 @@ PrefabInstance:
     - target: {fileID: 1593300761562318917, guid: 3c752cf8d203beb41824736b682ac0a5,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 100.000244
+      value: 100.00049
       objectReference: {fileID: 0}
     - target: {fileID: 1593300761562318917, guid: 3c752cf8d203beb41824736b682ac0a5,
         type: 3}
@@ -11820,7 +11820,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 61.35
+  m_fontSize: 59.6
   m_fontSizeBase: 88.53
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -12562,7 +12562,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98459943db561dd47a4b96f86b352733, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellPrefab: {fileID: 7233098599654009709}
+  cellPrefab: {fileID: 160584005859788726, guid: 398f1ff15989fe14a9812aafc6e4360e,
+    type: 3}
 --- !u!1 &1254884776
 GameObject:
   m_ObjectHideFlags: 0
@@ -13268,7 +13269,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1550928892}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 72.10297, z: 0}
+  m_LocalPosition: {x: 0, y: 91, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1190901225}
@@ -14048,7 +14049,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 105.21997}
+  m_AnchoredPosition: {x: 0, y: 105.220215}
   m_SizeDelta: {x: -104.03436, y: 378.18195}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &2023452504
@@ -14338,7 +14339,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -26}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1963619502476079990
@@ -19360,6 +19361,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualiser: {fileID: 933597055268597533}
+  animateIn: 1
 --- !u!1 &7830716520635625106
 GameObject:
   m_ObjectHideFlags: 0

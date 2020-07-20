@@ -68,6 +68,9 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		if (hitPositions.Count < 2 || selectedCell == null)
 			return;
 
+		aimLine.positionCount = 0;
+
+		BubbleInput.Instance.InputEnabled = false;
 		AnimatePlayer(false);
 		
 		Bubbleshooter.Feedback.VibrationManager.VibrateSelect();
@@ -78,8 +81,7 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		AudioManager.Instance.PlayClip(1);
 
 		FiredPositions?.Invoke(hitPositions);
-		playerCell.gameObject.SetActive(false);
-		aimLine.positionCount = 0;
+		playerCell.gameObject.SetActive(false);		
 
 		CoroutineManager.Instance.WaitUntil(() => BallInPosition == true, () =>
 		{
@@ -87,14 +89,9 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 			selectedCell.State = CellState.Filled;
 			Fired?.Invoke(selectedCell);
 
-			Bubbleshooter.Feedback.VibrationManager.VibrateSelect();
-
-			selectedCell = null;
-			
-
+			selectedCell = null;	
 			CurrentBallScore = (int)Math.Pow(2, UnityEngine.Random.Range(1, 6));
 			playerCell.Score = CurrentBallScore;
-
 			playerCell.gameObject.SetActive(true);
 			
 		});

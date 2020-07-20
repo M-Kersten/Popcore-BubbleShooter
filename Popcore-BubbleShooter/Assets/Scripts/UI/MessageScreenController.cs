@@ -18,9 +18,13 @@ public class MessageScreenController : MonoBehaviour
     [SerializeField]
     private MessagePreset messages;
 
+    private bool cooldown = false;
+
     public void ShowScreen(UserMessage userMessage)
     {
-        Debug.Log("showing game over: " + messages.GameoverTexts[0]);
+        if (cooldown)
+            return;
+        cooldown = true;
 
         if (userMessage == UserMessage.GoodJob || userMessage == UserMessage.LevelClear)
         {
@@ -48,7 +52,11 @@ public class MessageScreenController : MonoBehaviour
                         LeanTween.moveLocal(messageText.gameObject, Vector3.right * 1800, 1)
                                  .setDelay(1)
                                  .setEase(LeanTweenType.easeInQuart)
-                                 .setOnComplete(() => messageText.gameObject.transform.localPosition += Vector3.left * 1800 * 2);
+                                 .setOnComplete(() =>
+                                 {
+                                     messageText.gameObject.transform.localPosition += Vector3.left * 1800 * 2;
+                                     cooldown = false;
+                                 });
                     });
     }
 }
