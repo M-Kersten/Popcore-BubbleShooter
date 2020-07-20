@@ -1,7 +1,8 @@
 {
     "name": "BubbleScripts",
     "references": [
-        "GUID:66d77b92d7b7f1a4cad203cc265a67a0"
+        "GUID:66d77b92d7b7f1a4cad203cc265a67a0",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

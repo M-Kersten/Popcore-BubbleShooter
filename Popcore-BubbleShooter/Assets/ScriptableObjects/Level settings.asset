@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TotalCollums: 6
   TotalRows: 10
-  StartingRows: 5
+  StartingRows: 8

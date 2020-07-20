@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 #endif
 
-namespace Bubble.plugins
+namespace UnityTools
 {
     /// <summary>
     /// Class to activate vibrations, due to limited vibration options on iOS, only presets of vibrations have been implemented to keep the platforms consistent
@@ -58,7 +58,7 @@ namespace Bubble.plugins
         /// </summary>
         static VibrationManager()
         {
-            VibrationsEnabled =  VibrationSupported();
+            VibrationsEnabled = VibrationSupported();
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace Bubble.plugins
             Handheld.Vibrate();
 #endif
         }
-        
+
         /// <summary>
-        /// Since ios only supports 2 types of vibration, manually simulate an error vibration in this coroutine
+        /// Since ios only supports 2 vibrations, simulate an error vibration in this coroutine
         /// </summary>
         private static IEnumerator VibrationMultipleTimesIOS(int vibrationTimes, float seconds)
         {
@@ -95,9 +95,9 @@ namespace Bubble.plugins
                 yield return new WaitForSeconds(seconds);
             }
         }
-#endregion
+        #endregion
 
-#region Public
+        #region Public
         public static bool VibrationSupported()
         {
 #if UNITY_EDITOR
