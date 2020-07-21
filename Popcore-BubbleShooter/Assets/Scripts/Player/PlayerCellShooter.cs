@@ -63,7 +63,7 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		BubbleInput.InputReleased -= HandleTouchUp;
 	}
 
-    void HandleTouchUp(Vector2 touch)
+    private void HandleTouchUp(Vector2 touch)
 	{
 		if (hitPositions.Count < 2 || selectedCell == null)
 			return;
@@ -97,7 +97,7 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		});
 	}
 
-	void HandleTouchMove(Vector2 touch)
+	private void HandleTouchMove(Vector2 touch)
 	{		
 		hitPositions.Clear();
 			
@@ -117,13 +117,13 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 					selectedCell = hit.collider.gameObject.GetComponent<GridCell>();
 
 				hitPositions.Add(hit.point);
-				DrawPaths();
+				UpdateLinerenderer();
 			}
 		}
 		AnimatePlayer(true);
 	}
 
-	void RaycastWall(RaycastHit2D previousHit, Vector2 directionIn) 
+	private void RaycastWall(RaycastHit2D previousHit, Vector2 directionIn) 
 	{
 		hitPositions.Add(previousHit.point);
 
@@ -143,14 +143,14 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 					selectedCell = hit2.collider.gameObject.GetComponent<GridCell>();
 
 				hitPositions.Add(hit2.point); 
-				DrawPaths();
+				UpdateLinerenderer();
 			}
 		}
 		else
-			DrawPaths();	
+			UpdateLinerenderer();	
 	}
 
-    void DrawPaths()
+    private void UpdateLinerenderer()
     {
 		aimLine.positionCount = Math.Min(hitPositions.Count, 4);
         aimLine.SetPositions(hitPositions.ToArray());

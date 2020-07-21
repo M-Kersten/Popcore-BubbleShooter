@@ -1,7 +1,13 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// Class for handling all cell animations in the grid
+/// </summary>
 public class GridAnimator : MonoBehaviour
 {
+    /// <summary>
+    /// Defines the root object of the grid used in animations
+    /// </summary>
     [SerializeField]
     private GameObject grid;
 
@@ -17,11 +23,17 @@ public class GridAnimator : MonoBehaviour
         GridManager.CellsFalling -= ShakeGrid;
     }
 
+    /// <summary>
+    /// Shake the grid, used to simulate the grid shaking of loose cells
+    /// </summary>
     public void ShakeGrid()
     {
         LeanTween.moveX(grid, grid.transform.position.x + .045f, .1f).setLoopCount(4).setLoopPingPong();
     }
 
+    /// <summary>
+    /// Move cell in the given index downwards by 1
+    /// </summary>
     private void MoveCellDown(int x, int y)
     {
         RectTransform cellTransform = (RectTransform)GridManager.Instance.CurrentGrid[x, y].transform;

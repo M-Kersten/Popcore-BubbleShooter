@@ -5,6 +5,7 @@ using UnityEngine;
 
 /// <summary>
 /// Class for handling player input
+/// Todo: make this an interface with platform dependent input manager deriving from it for release
 /// </summary>
 public class BubbleInput : SingletonUtility.Singleton<BubbleInput>
 {
@@ -15,6 +16,9 @@ public class BubbleInput : SingletonUtility.Singleton<BubbleInput>
 	public static Action<Vector2> InputReleased;
 	public static Action<Vector2> InputMoved;
 
+	/// <summary>
+	/// Check whether input is allowed and if it is call get input
+	/// </summary>
 	private void Update()
     {
 		if (!InputEnabled)
@@ -22,6 +26,9 @@ public class BubbleInput : SingletonUtility.Singleton<BubbleInput>
 		GetInput();
 	}
 
+	/// <summary>
+	/// Get touch input and call the relevant events when a touch or mouseclick is detected
+	/// </summary>
 	private void GetInput()
 	{
 #if !UNITY_EDITOR

@@ -19,6 +19,9 @@ public class PlayerCellAnimator : MonoBehaviour
         PlayerCellShooter.FiredPositions -= AnimateShot;
     }
 
+    /// <summary>
+    /// Animate the player cell moving towards it assigned spot in the grid
+    /// </summary>
     public void AnimateShot(List<Vector3> positions)
     {
         PlayerCell cell = Instantiate(cellPrefab.gameObject, transform).GetComponent<PlayerCell>();
@@ -38,6 +41,9 @@ public class PlayerCellAnimator : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Animate the playercell along the bounce paths towards a given position
+    /// </summary>
     private void MoveBall(List<Vector3> positions, GameObject cell, int i, LeanTweenType tween)
     {
         LeanTween.scale(cell, Vector3.one * 1.2f, .2f).setEase(LeanTweenType.easeInOutSine).setDelay((i - 1) * .5f).setLoopPingPong().setLoopOnce();

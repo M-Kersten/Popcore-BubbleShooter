@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// Manager for grid logic
+/// Todo: refactor this code for release into a more MVC friendly solution
+/// </summary>
 public class GridManager : MonoBehaviour
 {
     #region Singleton instance
@@ -15,8 +19,13 @@ public class GridManager : MonoBehaviour
     /// </summary>
     public GridCell[,] CurrentGrid;
 
-    public static Action<GridCell, float> CellCreated;
+    /// <summary>
+    /// Action to call whenever a cell has to be moved down in the 
+    /// </summary>
     public static Action<int, int> MovedCellDown;
+    /// <summary>
+    /// Action to call whenever a cell is seperated and falling from the grid
+    /// </summary>
     public static Action CellsFalling;
 
     public RectTransform CellTransform => cellPrefab.transform as RectTransform;
@@ -131,6 +140,9 @@ public class GridManager : MonoBehaviour
         return gameOver;
     }
        
+    /// <summary>
+    /// Add a new row of cells on the top of the grid
+    /// </summary>
     private void AddCellRow()
     {
         spawningEvenRow = !spawningEvenRow;
@@ -140,6 +152,9 @@ public class GridManager : MonoBehaviour
         activeRows++;
     }
 
+    /// <summary>
+    /// Move all the cells in the grid down by 1 row
+    /// </summary>
     private void MoveGridDown()
     {        
         RemoveEmptyCells();
@@ -163,6 +178,10 @@ public class GridManager : MonoBehaviour
         SpawnEmptyCells();
     }
 
+    /// <summary>
+    /// Instantiates a new gridcell into the grid
+    /// TODO: implement object pooling here
+    /// </summary>
     private Cell CreateNewCell(int x, int y, CellState state = CellState.Filled)
     {
         // adjust the cells horizontally to create a "beehive" pattern which is nicer to look at
@@ -184,6 +203,9 @@ public class GridManager : MonoBehaviour
         return newCell;
     }
 
+    /// <summary>
+    /// Go through each cell to check whether they are seperated from the top and remove them if they are
+    /// </summary>
     private void DeleteSeperatedCells()
     {
         // by default all cells set to be seperated
@@ -230,6 +252,9 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Combine all matching neighbours and create a new cell with higher exponent, ideally next to one with matching exponent
+    /// </summary>
     public void MatchCells(GridCell newCell, Action callback = null)
     {
         AudioManager.Instance.PlayClip(0);
@@ -300,6 +325,9 @@ public class GridManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// Retrieves all neighbouring cells in the grid
+    /// </summary>
     public HashSet<GridCell> GetNeighbours(GridCell cell, bool onlyValid = true, bool checkForUpgrade = false)
     {
         HashSet<GridCell> neighbours = new HashSet<GridCell>();
@@ -325,7 +353,9 @@ public class GridManager : MonoBehaviour
         }
         return neighbours;
     }
-
+    /// <summary>
+    /// Returns all cells in the grid with matching cellstate
+    /// </summary>
     private List<GridCell> GetAllCells(CellState state = CellState.Filled)
     {
         List<GridCell> returnCells = new List<GridCell>();
@@ -336,6 +366,9 @@ public class GridManager : MonoBehaviour
         return returnCells;
     }
 
+    /// <summary>
+    /// Removes all cells with cellstate empty
+    /// </summary>
     private void RemoveEmptyCells()
     {
         // remove current empty cells
@@ -348,6 +381,9 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Spawns in new empty cells next to each filled cell
+    /// </summary>
     private void SpawnEmptyCells()
     {     
         // spawn new ones

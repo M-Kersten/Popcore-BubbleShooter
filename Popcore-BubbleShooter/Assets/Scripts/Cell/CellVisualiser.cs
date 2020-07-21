@@ -22,6 +22,10 @@ public class CellVisualiser : MonoBehaviour
 
     private int score = 0;
 
+    /// <summary>
+    /// Updates the cell to represent the new score (changes the color and score displayed on it)
+    /// </summary>
+    /// <param name="newScore"></param>
     public void UpdateVisuals(int newScore)
     {
         score = newScore;
@@ -34,6 +38,9 @@ public class CellVisualiser : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Animates in the cell with a pop in effect
+    /// </summary>
     public void AnimateIn()
     {
         LeanTween.cancel(gameObject);
@@ -42,6 +49,9 @@ public class CellVisualiser : MonoBehaviour
             .setEase(LeanTweenType.easeOutBack);
     }
 
+    /// <summary>
+    /// Drops the cell from the grid downwards with a random x direction
+    /// </summary>
     public void AnimateFallDown(int i, Action callback = null)
     {
         LeanTween.moveY(gameObject, -5, .8f)
@@ -51,12 +61,18 @@ public class CellVisualiser : MonoBehaviour
         LeanTween.moveX(gameObject, transform.position.x + UnityEngine.Random.Range(-5, 5), .8f).setEase(LeanTweenType.easeInSine).setDelay(i * .05f);
     }
 
+    /// <summary>
+    /// Moves the cell from it's current spot in the grid to the location of upgraded version of it
+    /// </summary>
     public void MoveToCell(GridCell upgradeCell, Action callback)
     {
         UpdateVisuals(upgradeCell.Score);
         LeanTween.move(gameObject, upgradeCell.transform.position, .5f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(callback);
     }
 
+    /// <summary>
+    /// Makes the cell dissapear from the grid
+    /// </summary>
     public void AnimateOut(CellState state, Action callback = null)
     {
         LeanTween.cancel(gameObject);
@@ -79,6 +95,10 @@ public class CellVisualiser : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// Updates the look of the cell when changing its state
+    /// </summary>
+    /// <param name="state"></param>
     public void UpdateState(CellState state)
     {
         switch (state)
