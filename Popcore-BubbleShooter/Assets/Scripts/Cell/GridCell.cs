@@ -32,12 +32,14 @@ public class GridCell : Cell
     /// Moves the cell towards a neighbour with a higher exponent and merges with it
     /// </summary>
     /// <param name="upgradeCell"></param>
-    public void MergeWithUpgrade(GridCell upgradeCell)
+    public void MergeWithUpgrade(GridCell upgradeCell, Action callback)
     {
+        GridManager.Instance.CurrentGrid[Index.x, Index.y] = null;
+        visualiser.AnimateIn();
         visualiser.MoveToCell(upgradeCell, () =>
-        {
-            GridManager.Instance.CurrentGrid[Index.x, Index.y] = null;
+        {            
             DestroyCell();
+            callback.Invoke();
         });
     }
 

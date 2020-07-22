@@ -35,7 +35,7 @@ public class CellVisualiser : MonoBehaviour
         {
             ParticleSystem.MainModule main = particles.main;
             main.startColor = circle.color;
-        }
+        }        
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class CellVisualiser : MonoBehaviour
     public void MoveToCell(GridCell upgradeCell, Action callback)
     {
         UpdateVisuals(upgradeCell.Score);
-        LeanTween.move(gameObject, upgradeCell.transform.position, .5f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(callback);
+        LeanTween.move(gameObject, upgradeCell.transform.position, .5f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(() => callback.Invoke());
     }
 
     /// <summary>

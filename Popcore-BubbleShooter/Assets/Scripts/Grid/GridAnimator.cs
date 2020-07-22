@@ -11,22 +11,43 @@ public class GridAnimator : MonoBehaviour
     [SerializeField]
     private GameObject grid;
 
+    [SerializeField]
+    private float maxRotationDegrees;
+    [SerializeField]
+    private float minRotationDegrees;
+
+    private bool movedLeft;
+
     private void Start()
     {
         GridManager.MovedCellDown += MoveCellDown;
-        GridManager.CellsFalling += ShakeGrid;
+        GridManager.CellsDestroyed += ShakeGrid;
+        GridManager.TurnOver += GridRotate;
     }
 
     private void OnDestroy()
     {
         GridManager.MovedCellDown -= MoveCellDown;
-        GridManager.CellsFalling -= ShakeGrid;
+        GridManager.CellsDestroyed -= ShakeGrid;
+        GridManager.TurnOver -= GridRotate;
+    }
+
+    public void GridRotate(bool reset)
+    {
+        float newDegrees = Random.Range(minRotationDegrees, maxRotationDegrees);
+        if (movedLeft)
+            newDegrees *= -1;
+        if (reset)
+            newDegrees = 0;
+        LeanTween.rotateLocal(grid, Vector3.forward * newDegrees, .5f).setEase(LeanTweenType.easeInOutBack);
+        LeanTween.scale(grid, Vector3.one * .94f, .25f).setEase(LeanTweenType.easeInOutQuart).setOnComplete(() => LeanTween.scale(grid, Vector3.one, .25f).setEase(LeanTweenType.easeInOutQuart));
+        movedLeft = !movedLeft;
     }
 
     /// <summary>
     /// Shake the grid, used to simulate the grid shaking of loose cells
     /// </summary>
-    public void ShakeGrid()
+    private void ShakeGrid()
     {
         LeanTween.moveX(grid, grid.transform.position.x + .045f, .1f).setLoopCount(4).setLoopPingPong();
     }

@@ -9,6 +9,9 @@ public class PlayerCellAnimator : MonoBehaviour
     [SerializeField]
     private PlayerCell cellPrefab;
 
+    [SerializeField]
+    private float moveDuration;
+
     private void Start()
     {
         PlayerCellShooter.FiredPositions += AnimateShot;
@@ -26,9 +29,11 @@ public class PlayerCellAnimator : MonoBehaviour
     {
         PlayerCell cell = Instantiate(cellPrefab.gameObject, transform).GetComponent<PlayerCell>();
         cell.Init(PlayerCellShooter.Instance.CurrentBallScore);
+
         for (int i = 1; i < positions.Count; i++)
         {
             LeanTweenType tween = LeanTweenType.notUsed;
+            
             if (i == positions.Count - 1)
             {
                 tween = LeanTweenType.easeOutSine;
@@ -37,18 +42,19 @@ public class PlayerCellAnimator : MonoBehaviour
             }
             else if (i == 1)
                 tween = LeanTweenType.easeInSine;
+            
             MoveBall(positions, cell.gameObject, i, tween);
         }
+        LeanTween.scale(cell.gameObject, Vector3.one * 1.5f, moveDuration / 2).setEase(LeanTweenType.easeOutQuart).setLoopPingPong();
     }
 
     /// <summary>
     /// Animate the playercell along the bounce paths towards a given position
     /// </summary>
     private void MoveBall(List<Vector3> positions, GameObject cell, int i, LeanTweenType tween)
-    {
-        LeanTween.scale(cell, Vector3.one * 1.2f, .2f).setEase(LeanTweenType.easeInOutSine).setDelay((i - 1) * .5f).setLoopPingPong().setLoopOnce();
-        LeanTween.move(cell, positions[i], .5f)
-                        .setDelay((i - 1) * .5f)
+    {        
+        LeanTween.move(cell, positions[i], moveDuration / (positions.Count - 1))
+                        .setDelay((i - 1) * (moveDuration / (positions.Count - 1)))
                         .setEase(tween)
                         .setOnComplete(() =>
                         {

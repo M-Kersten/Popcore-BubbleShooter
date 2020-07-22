@@ -26,7 +26,8 @@ public class GridManager : MonoBehaviour
     /// <summary>
     /// Action to call whenever a cell is seperated and falling from the grid
     /// </summary>
-    public static Action CellsFalling;
+    public static Action CellsDestroyed;
+    public static Action<bool> TurnOver;
 
     public RectTransform CellTransform => cellPrefab.transform as RectTransform;
     private RectTransform GridRect => gridInstance.transform as RectTransform;
@@ -45,6 +46,8 @@ public class GridManager : MonoBehaviour
     private int activeRows;
     private GameObject gridInstance;
     private bool spawningEvenRow;
+
+
 
     private void Awake()
     {
@@ -70,12 +73,20 @@ public class GridManager : MonoBehaviour
     /// </summary>
     /// <param name="cell"></param>
     private void CellAdded(GridCell cell)
-    {        
-        MatchCells(cell, () => {
-        if (CheckForGameOver())
-            ResetGrid();
-        MoveGridDown();
-        CoroutineManager.Instance.Wait((settings.TotalCollums + settings.TotalRows) *.065f, () => BubbleInput.Instance.InputEnabled = true);
+    {
+        // match cells until no matches can be made anymore
+        MatchCells(cell, () =>
+        {
+            bool gameOver = CheckForGameOver();
+            if (gameOver)
+                ResetGrid();
+            MoveGridDown();
+            CoroutineManager.Instance.Wait((settings.TotalCollums + settings.TotalRows) * .061f, () =>
+             {
+                 BubbleInput.Instance.InputEnabled = true;
+                 if (!gameOver)
+                    TurnOver(false);
+             });
         });
     }
 
@@ -113,7 +124,8 @@ public class GridManager : MonoBehaviour
             cell.DestroyCell(true, i);
         }
 
-        CellsFalling();
+        TurnOver(true);
+        CellsDestroyed();
         Bubbleshooter.Feedback.VibrationManager.VibrateError();
     }
 
@@ -175,7 +187,7 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
-        SpawnEmptyCells();
+        SpawnEmptyCells();        
     }
 
     /// <summary>
@@ -242,7 +254,7 @@ public class GridManager : MonoBehaviour
         if (seperatedCells.Count < 1)
             return;
 
-        CellsFalling();
+        CellsDestroyed();
 
         for (int i = 0; i < seperatedCells.Count; i++)
         {
@@ -277,11 +289,13 @@ public class GridManager : MonoBehaviour
         GridCell upgradeCell = null;
         List<GridCell> matches = matchedCells.ToList();
 
+        bool mergingDone = matches.Count < 1;
+
         for (int i = matches.Count - 1; i >= 0; i--)
         {
             // interaction logic here
             // check for a neighbour with score and change the score of the cell
-            if (upgradeCell == null && GetNeighbours(matches[i], false, true).Count > 0)
+            if (GetNeighbours(matches[i], false, true).Count > 0)
             {
                 matches[i].Score *= 2;
                 upgradeCell = matches[i];
@@ -295,23 +309,35 @@ public class GridManager : MonoBehaviour
                         cell.DestroyCell();
                     }
                 }
+                break;
             }
         }
+                
+        // if no subsequent merge is possible, pick the last cell out of the list of matched cells and make it the upgraded cell
         for (int i = 0; i < matches.Count; i++)
         {
             if (upgradeCell == null)
             {
-                matches[i].Score *= 2;
+                matches[i].Score *= 2;                
                 upgradeCell = matches[i];
+                if (i == matches.Count - 1)
+                    mergingDone = true;                
             }
-            else            
-                CurrentGrid[matches[i].Index.x, matches[i].Index.y].MergeWithUpgrade(upgradeCell);
+            else
+                CurrentGrid[matches[i].Index.x, matches[i].Index.y].MergeWithUpgrade(upgradeCell, () => 
+                { 
+                    mergingDone = true; 
+                    CellsDestroyed(); 
+                });
+            
         }
-        
-        CoroutineManager.Instance.Wait(.5f, () => 
+
+        // wait for the merging animation to finish before matching again
+        CoroutineManager.Instance.WaitUntil(() => mergingDone, () => 
         {
             DeleteSeperatedCells();
 
+            // If a cell has changed to a higher exponent, repaet the cell matching with that cell
             if (upgradeCell != null)   
                 MatchCells(upgradeCell, callback);
             else            
@@ -328,7 +354,7 @@ public class GridManager : MonoBehaviour
     /// <summary>
     /// Retrieves all neighbouring cells in the grid
     /// </summary>
-    public HashSet<GridCell> GetNeighbours(GridCell cell, bool onlyValid = true, bool checkForUpgrade = false)
+    public HashSet<GridCell> GetNeighbours(GridCell cell, bool onlyValid = true, bool checkForUpgrade = false, bool includeCheckingCell = false)
     {
         HashSet<GridCell> neighbours = new HashSet<GridCell>();
         for (int x = cell.Index.x - 1; x <= cell.Index.x + 1; x++)
@@ -351,6 +377,8 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
+        if (includeCheckingCell)
+            neighbours.Add(cell);
         return neighbours;
     }
     /// <summary>

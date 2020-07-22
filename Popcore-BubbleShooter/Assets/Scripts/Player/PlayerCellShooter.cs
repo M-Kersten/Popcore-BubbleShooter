@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using UnityEngine.EventSystems;
 
 public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 {
@@ -57,8 +58,9 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		playerCell.Score = CurrentBallScore;
 	}
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+		base.OnDestroy();
 		BubbleInput.InputMoved -= HandleTouchMove;
 		BubbleInput.InputReleased -= HandleTouchUp;
 	}
@@ -132,17 +134,17 @@ public class PlayerCellShooter : SingletonUtility.Singleton<PlayerCellShooter>
 		var reflection = new Vector2(-Mathf.Cos(newDirection), -Mathf.Sin(newDirection));
 		var newCastPoint = previousHit.point + (2 * reflection);
 
-		var hit2 = Physics2D.Raycast(newCastPoint, reflection);
-		if (hit2.collider != null)
+		var subsequentHit = Physics2D.Raycast(newCastPoint, reflection);
+		if (subsequentHit.collider != null)
 		{
-			if (hit2.collider.CompareTag("Wall"))
-				RaycastWall(hit2, reflection);
+			if (subsequentHit.collider.CompareTag("Wall"))
+				RaycastWall(subsequentHit, reflection);
 			else
 			{
-				if (hit2.collider.gameObject.GetComponent<GridCell>() != null)
-					selectedCell = hit2.collider.gameObject.GetComponent<GridCell>();
+				if (subsequentHit.collider.gameObject.GetComponent<GridCell>() != null)
+					selectedCell = subsequentHit.collider.gameObject.GetComponent<GridCell>();
 
-				hitPositions.Add(hit2.point); 
+				hitPositions.Add(subsequentHit.point); 
 				UpdateLinerenderer();
 			}
 		}
